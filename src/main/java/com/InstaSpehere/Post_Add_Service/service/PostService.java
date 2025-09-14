@@ -883,6 +883,51 @@ public List<PostModel> getPostsByUserProfileId(Integer userProfileId, Integer re
         storyRepository.delete(story);
     }
 
+    public List<PostController.EnhancedStoryResponse> getEnhancedStoriesFeed(Integer requestingUserProfileId) {
+        // 1. Get list of users the requester follows
+        List<Integer> followingIds = followRepository.findByFollowerId(requestingUserProfileId)
+                .stream()
+                .map(Follow::getFollowedId)
+                .collect(Collectors.toList());
+
+        // Include the user’s own stories too
+        followingIds.add(requestingUserProfileId);
+
+        // 2. Fetch active stories from these users (not expired)
+        LocalDateTime expiryTime = LocalDateTime.now().minusHours(24);
+        List<Story> stories = storyRepository.findActiveStoriesByUserProfileIdIn(followingIds, expiryTime);
+
+        // 3. Apply access control (only allow private stories if the requester follows them)
+        return stories.stream()
+                .filter(s -> {
+                    if (Boolean.TRUE.equals(s.getIsPrivate()) && !s.getUserProfileId().equals(requestingUserProfileId)) {
+                        return followRepository.existsByFollowerIdAndFollowedId(requestingUserProfileId, s.getUserProfileId());
+                    }
+                    return true;
+                })
+                .map(s -> {
+                    UserprofileResponse user = null;
+                    try {
+                        user = postServiceClient.validateProfile(s.getUserProfileId());
+                    } catch (Exception e) {
+                        System.out.println("Failed to fetch user profile for userProfileId " + s.getUserProfileId() + ": " + e.getMessage());
+                    }
+
+                    String username = "Unknown";
+                    String profilePictureUrl = "https://placehold.co/30x30/1a1a1a/ffffff?text=U";
+                    if (user != null) {
+                        username = postServiceClient.getUsername(user.getUserId());
+                        profilePictureUrl = user.getProfilePictureUrl() != null ? user.getProfilePictureUrl() : profilePictureUrl;
+                    }
+
+                    return new PostController.EnhancedStoryResponse(
+                            s.getStoryId(), s.getUserProfileId(), username, profilePictureUrl,
+                            s.getMediaUrl(), s.getMediaType(), s.getIsPrivate(), s.getCreatedAt()
+                    );
+                })
+                .collect(Collectors.toList());
+    }
+
     private List<Integer> getLikedByUserProfileIds(Integer postId) {
         return postLikeRepository.findByPostId(postId)
                 .stream()
@@ -1113,4 +1158,6 @@ public List<PostModel> getPostsByUserProfileId(Integer userProfileId, Integer re
     public List<PostModel> getBannedPosts() {
         return postRepository.findByIsBannedTrue();
     }
+
+
 }

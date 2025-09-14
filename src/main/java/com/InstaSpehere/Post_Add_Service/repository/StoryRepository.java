@@ -16,4 +16,8 @@ public interface StoryRepository extends JpaRepository<Story, Long> {
 
     @Query("SELECT s FROM Story s WHERE s.userProfileId = :userProfileId AND s.createdAt >= :expiryTime")
     List<Story> findActiveStoriesByUserProfileId(Integer userProfileId, LocalDateTime expiryTime);
+
+    @Query("SELECT s FROM Story s WHERE s.userProfileId IN :followingIds AND s.createdAt >= :expiryTime")
+    List<Story> findActiveStoriesByUserProfileIdIn(List<Integer> followingIds, LocalDateTime expiryTime);
+
 }

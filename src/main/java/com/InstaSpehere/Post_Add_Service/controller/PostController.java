@@ -615,6 +615,38 @@ public class PostController {
         public LocalDateTime getCreatedAt() { return createdAt; }
     }
 
+    public static class EnhancedStoryResponse {
+        private Long storyId;
+        private Integer userProfileId;
+        private String username;
+        private String profilePictureUrl;
+        private String mediaUrl;
+        private Story.MediaType mediaType;
+        private Boolean isPrivate;
+        private LocalDateTime createdAt;
+
+        public EnhancedStoryResponse(Long storyId, Integer userProfileId, String username, String profilePictureUrl,
+                                     String mediaUrl, Story.MediaType mediaType, Boolean isPrivate, LocalDateTime createdAt) {
+            this.storyId = storyId;
+            this.userProfileId = userProfileId;
+            this.username = username;
+            this.profilePictureUrl = profilePictureUrl;
+            this.mediaUrl = mediaUrl;
+            this.mediaType = mediaType;
+            this.isPrivate = isPrivate;
+            this.createdAt = createdAt;
+        }
+
+        public Long getStoryId() { return storyId; }
+        public Integer getUserProfileId() { return userProfileId; }
+        public String getUsername() { return username; }
+        public String getProfilePictureUrl() { return profilePictureUrl; }
+        public String getMediaUrl() { return mediaUrl; }
+        public Story.MediaType getMediaType() { return mediaType; }
+        public Boolean getIsPrivate() { return isPrivate; }
+        public LocalDateTime getCreatedAt() { return createdAt; }
+    }
+
     // Create a post
     @PostMapping("/add")
     public ResponseEntity<String> addPost(@RequestBody PostModel post) {
@@ -1264,6 +1296,16 @@ public class PostController {
         }
     }
 
+    // Get enhanced stories feed (own and followed users' stories)
+    @GetMapping("/stories/enhanced-feed")
+    public ResponseEntity<List<EnhancedStoryResponse>> getEnhancedStoriesFeed(@RequestParam Integer requestingUserProfileId) {
+        try {
+            List<EnhancedStoryResponse> stories = postService.getEnhancedStoriesFeed(requestingUserProfileId);
+            return ResponseEntity.ok(stories);
+        } catch (Exception e) {
+            return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
     public static class ReportRequest {
         private Integer postId;
         private Integer userProfileId;
@@ -1361,4 +1403,6 @@ public class PostController {
             return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
+
+
 }
