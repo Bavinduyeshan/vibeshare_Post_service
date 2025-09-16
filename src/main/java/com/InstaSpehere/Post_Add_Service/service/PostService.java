@@ -137,10 +137,14 @@ import com.InstaSpehere.Post_Add_Service.repository.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.File;
+import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
@@ -193,6 +197,12 @@ public class PostService {
         post.setCommentCount(0);
         return postRepository.save(post);
     }
+
+
+
+
+
+
 
 //c
 //    public Optional<PostModel> getPostById(Integer postId, Integer requestingUserProfileId) {
@@ -1159,5 +1169,46 @@ public List<PostModel> getPostsByUserProfileId(Integer userProfileId, Integer re
         return postRepository.findByIsBannedTrue();
     }
 
+
+    // In PostService.java, add this new method inside the class:
+
+    public List<PostController.EnhancedPostResponse> getAllPosts() {
+        List<PostModel> posts = postRepository.findAll();
+        return posts.stream()
+                .filter(p -> !p.getIsBanned()) // Filter out banned posts
+                .map(p -> {
+                    UserprofileResponse user = null;
+                    try {
+                        user = postServiceClient.validateProfile(p.getUserProfileId());
+                    } catch (Exception e) {
+                        System.out.println("Failed to fetch user profile for userProfileId "
+                                + p.getUserProfileId() + ": " + e.getMessage());
+                    }
+
+                    String username = "Unknown";
+                    String profilePictureUrl = "https://placehold.co/30x30/1a1a1a/ffffff?text=U";
+                    if (user != null && user.getUserId() != null) {
+                        username = postServiceClient.getUsername(user.getUserId());
+                        profilePictureUrl = user.getProfilePictureUrl() != null
+                                ? user.getProfilePictureUrl()
+                                : profilePictureUrl;
+                    }
+
+                    return new PostController.EnhancedPostResponse(
+                            p.getPostId(),
+                            p.getUserProfileId(),
+                            username,
+                            profilePictureUrl,
+                            p.getCaption(),
+                            p.getMediaUrl(),
+                            p.getMediaType(),
+                            p.getPrivate(),
+                            p.getLikeCount(),
+                            p.getCommentCount(),
+                            getLikedByUserProfileIds(p.getPostId())
+                    );
+                })
+                .collect(Collectors.toList());
+    }
 
 }

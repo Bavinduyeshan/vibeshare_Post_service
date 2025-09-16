@@ -302,8 +302,10 @@ import com.InstaSpehere.Post_Add_Service.repository.CommentRepository;
 import com.InstaSpehere.Post_Add_Service.service.PostService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDateTime;
 import java.util.Collections;
@@ -659,6 +661,7 @@ public class PostController {
             return new ResponseEntity<>("An error occurred: " + e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
+
 
 
     @GetMapping("/get/{id}")
@@ -1399,6 +1402,19 @@ public class PostController {
                             p.getLikedByUserProfileIds()))
                     .collect(Collectors.toList());
             return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+
+    // In PostController.java, add this new endpoint inside the class:
+
+    @GetMapping("/all")
+    public ResponseEntity<List<EnhancedPostResponse>> getAllPosts() {
+        try {
+            List<EnhancedPostResponse> posts = postService.getAllPosts();
+            return ResponseEntity.ok(posts);
         } catch (Exception e) {
             return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
         }
