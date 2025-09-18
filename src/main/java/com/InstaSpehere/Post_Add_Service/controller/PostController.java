@@ -694,23 +694,6 @@ public class PostController {
     }
 
 
-    // Get post by ID
-//    @GetMapping("/get/{id}")
-//    public ResponseEntity<?> getPostById(@PathVariable Integer id, @RequestParam Integer requestingUserProfileId) {
-//        try {
-//            Optional<PostModel> post = postService.getPostById(id, requestingUserProfileId);
-//            if (post.isPresent()) {
-//                PostModel p = post.get();
-//                return ResponseEntity.ok(new PostResponse(
-//                        p.getPostId(), p.getUserProfileId(), p.getCaption(), p.getMediaUrl(),
-//                        p.getMediaType(), p.getPrivate(), p.getLikeCount(), p.getCommentCount(),p.get));
-//            } else {
-//                return new ResponseEntity<>("Post not found or access denied", HttpStatus.OK);
-//            }
-//        } catch (Exception e) {
-//            return new ResponseEntity<>(e.getMessage(), HttpStatus.OK);
-//        }
-//    }
 
 
 
@@ -730,22 +713,6 @@ public class PostController {
             return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
-    // Get posts by user profile ID
-//    @GetMapping("/byUserProfileId/{userProfileId}")
-//    public ResponseEntity<List<PostResponse>> getPostsByUserProfileId(@PathVariable Integer userProfileId,
-//                                                                      @RequestParam Integer requestingUserProfileId) {
-//        try {
-//            List<PostModel> posts = postService.getPostsByUserProfileId(userProfileId, requestingUserProfileId);
-//            List<PostResponse> response = posts.stream()
-//                    .map(p -> new PostResponse(
-//                            p.getPostId(), p.getUserProfileId(), p.getCaption(), p.getMediaUrl(),
-//                            p.getMediaType(), p.getPrivate(), p.getLikeCount(), p.getCommentCount(),p.getLikedByUserProfileIds()))
-//                    .collect(Collectors.toList());
-//            return ResponseEntity.ok(response);
-//        } catch (Exception e) {
-//            return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
-//        }
-//    }
 
     // Validate post existence by ID
     @GetMapping("/validate/{id}")
@@ -818,23 +785,6 @@ public class PostController {
         }
     }
 
-//    @DeleteMapping("/{postId}/unlikes")
-//    public ResponseEntity<String> removeLike(@PathVariable Integer postId, @RequestBody Map<String, Integer> payload) {
-//        try {
-//            Integer userProfileId = payload.get("userProfileId");
-//            if (userProfileId == null) {
-//                return new ResponseEntity<>("Missing userProfileId", HttpStatus.BAD_REQUEST);
-//            }
-//
-//            postService.removeLike(postId, userProfileId);
-//            return ResponseEntity.ok("Like removed successfully!");
-//
-//        } catch (RuntimeException e) {
-//            return new ResponseEntity<>(e.getMessage(), HttpStatus.NOT_FOUND);
-//        } catch (Exception e) {
-//            return new ResponseEntity<>("An error occurred: " + e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
-//        }
-//    }
 
 
 
@@ -911,71 +861,6 @@ public class PostController {
     }
 
 
-    // Update getCommentsByPostId
-//    @GetMapping("/{postId}/comments")
-//    public ResponseEntity<List<CommentResponse>> getCommentsByPostId(@PathVariable Integer postId,
-//                                                                     @RequestParam Integer requestingUserProfileId) {
-//        try {
-//            Optional<PostModel> post = postService.getPostById(postId, requestingUserProfileId);
-//            if (post.isEmpty()) {
-//                return new ResponseEntity<>(null, HttpStatus.OK);
-//            }
-//            List<Comment> comments = postService.getCommentsByPostId(postId);
-//            List<CommentResponse> response = comments.stream()
-//                    .map(c -> new CommentResponse(c.getCommentId(), c.getPostId(), c.getUserProfileId(), c.getUsername(), c.getProfilePictureUrl(), c.getContent()))
-//                    .collect(Collectors.toList());
-//            return ResponseEntity.ok(response);
-//        } catch (Exception e) {
-//            return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
-//        }
-//    }
-
-//    @GetMapping("/{postId}/comments")
-//    public ResponseEntity<List<CommentResponse>> getCommentsByPostId(
-//            @PathVariable Integer postId,
-//            @RequestParam Integer requestingUserProfileId) {
-//
-//        try {
-//            // Check if post exists
-//            Optional<PostModel> post = postService.getPostById(postId, requestingUserProfileId);
-//            if (post.isEmpty()) {
-//                return ResponseEntity.ok(Collections.emptyList()); // return empty list if post not found
-//            }
-//
-//            // Fetch comments from service (already returns CommentResponse with username & profile picture)
-//            List<PostController.CommentResponse> comments = postService.getCommentsByPostId(postId);
-//
-//            return ResponseEntity.ok(comments);
-//
-//        } catch (Exception e) {
-//            e.printStackTrace();
-//            return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
-//        }
-//    }
-
-
-    // Update getRepliesByCommentId
-//    @GetMapping("/comments/{commentId}/replies")
-//    public ResponseEntity<List<CommentReplyResponse>> getRepliesByCommentId(@PathVariable Long commentId,
-//                                                                            @RequestParam Integer requestingUserProfileId) {
-//        try {
-//            Comment comment = commentRepository.findById(commentId)
-//                    .orElseThrow(() -> new RuntimeException("Comment not found"));
-//            Optional<PostModel> post = postService.getPostById(comment.getPostId(), requestingUserProfileId);
-//            if (post.isEmpty()) {
-//                return new ResponseEntity<>(null, HttpStatus.OK);
-//            }
-//            List<CommentReply> replies = postService.getRepliesByCommentId(commentId);
-//            List<CommentReplyResponse> response = replies.stream()
-//                    .map(r -> new CommentReplyResponse(r.getReplyId(), r.getCommentId(), r.getUserProfileId(), r.getUsername(), r.getProfilePictureUrl(), r.getContent()))
-//                    .collect(Collectors.toList());
-//            return ResponseEntity.ok(response);
-//        } catch (RuntimeException e) {
-//            return new ResponseEntity<>(null, HttpStatus.OK);
-//        } catch (Exception e) {
-//            return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
-//        }
-//    }
 
     // Get post count
     @GetMapping("/count")
@@ -1421,4 +1306,56 @@ public class PostController {
     }
 
 
+    // Get total likes count across all posts
+    @GetMapping("/likes/total")
+    public ResponseEntity<Long> getTotalLikesCount() {
+        try {
+            long count = postService.getTotalLikesCount();
+            return ResponseEntity.ok(count);
+        } catch (Exception e) {
+            return new ResponseEntity<>(0L, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    // Get pending reports count
+    @GetMapping("/reports/pending")
+    public ResponseEntity<Long> getPendingReportsCount() {
+        try {
+            long count = postService.getPendingReportsCount();
+            return ResponseEntity.ok(count);
+        } catch (Exception e) {
+            return new ResponseEntity<>(0L, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    @GetMapping("/comments/count")
+    public ResponseEntity<Long> getTotalCommentsCount() {
+        long count = postService.getTotalCommentsCount();
+        return ResponseEntity.ok(count);
+    }
+
+
+    // Resolve an alert (admin only)
+    // Resolve an alert (admin only)
+    @PostMapping("/admin/alerts/resolve")
+    public ResponseEntity<String> resolveAlert(@RequestBody ResolveAlertRequest request) {
+        try {
+            postService.resolveAlert(request.getAlertId());
+            return ResponseEntity.ok("Alert resolved successfully!");
+        } catch (IllegalArgumentException e) {
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
+        } catch (RuntimeException e) {
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.NOT_FOUND);
+        } catch (Exception e) {
+            return new ResponseEntity<>("An error occurred: " + e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    // DTO for resolve alert request
+    public static class ResolveAlertRequest {
+        private Long alertId;
+
+        public Long getAlertId() { return alertId; }
+        public void setAlertId(Long alertId) { this.alertId = alertId; }
+    }
 }

@@ -14,4 +14,7 @@ public interface AdminAlertRepository extends JpaRepository<AdminAlert, Long> {
     List<AdminAlert> findByPostId(Integer postId);
 
     boolean existsByPostId(Integer postId);
+
+
+    long countByIsResolvedFalse();
 }

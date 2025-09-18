@@ -1,133 +1,3 @@
-//package com.InstaSpehere.Post_Add_Service.service;
-//
-//import com.InstaSpehere.Post_Add_Service.model.*;
-//import com.InstaSpehere.Post_Add_Service.repository.*;
-//import org.springframework.beans.factory.annotation.Autowired;
-//import org.springframework.stereotype.Service;
-//import org.springframework.transaction.annotation.Transactional;
-//
-//import java.util.List;
-//import java.util.Optional;
-//
-//@Service
-//public class PostService {
-//
-//    @Autowired
-//    private PostRepository postRepository;
-//
-//    @Autowired
-//    private PostLikeRepository postLikeRepository;
-//
-//    @Autowired
-//    private CommentRepository commentRepository;
-//
-//    @Autowired
-//    private CommentReplyRepository commentReplyRepository;
-//
-//    @Autowired
-//    private PostServiceClient postServiceClient;  // Corrected to UserServiceClient
-//
-//    // Create a post
-//    @Transactional
-//    public PostModel createPost(PostModel post) {
-//        if (post.getUserProfileId() == null) {
-//            throw new IllegalArgumentException("User profile ID is missing");
-//        }
-//        UserprofileResponse user = postServiceClient.validateProfile(post.getUserProfileId());
-//        if (user == null) {
-//            throw new IllegalArgumentException("Invalid user profile");
-//        }
-//        post.setLikeCount(0);
-//        post.setCommentCount(0);
-//        return postRepository.save(post);
-//    }
-//
-//    // Get post by ID
-//    public Optional<PostModel> getPostById(Integer postId) {
-//        return postRepository.findById(postId);
-//    }
-//
-//    // Get posts by user profile ID
-//    public List<PostModel> getPostsByUserProfileId(Integer userProfileId) {
-//        return postRepository.findByUserProfileId(userProfileId);
-//    }
-//
-//    // Add a like
-//    @Transactional
-//    public void addLike(Integer postId, Integer userProfileId) {
-//        if (postLikeRepository.existsByPostIdAndUserProfileId(postId, userProfileId)) {
-//            throw new IllegalArgumentException("User already liked this post");
-//        }
-//        PostModel post = postRepository.findById(postId)
-//                .orElseThrow(() -> new RuntimeException("Post not found"));
-//        UserprofileResponse user = postServiceClient.validateProfile(userProfileId);
-//        if (user == null) {
-//            throw new IllegalArgumentException("Invalid user profile");
-//        }
-//        PostLike like = new PostLike();
-//        like.setPostId(postId);
-//        like.setUserProfileId(userProfileId);
-//        postLikeRepository.save(like);
-//        post.setLikeCount(post.getLikeCount() + 1);
-//        postRepository.save(post);
-//    }
-//
-//    // Remove a like
-//    @Transactional
-//    public void removeLike(Integer postId, Integer userProfileId) {
-//        PostLike like = postLikeRepository.findByPostIdAndUserProfileId(postId, userProfileId)
-//                .orElseThrow(() -> new RuntimeException("Like not found"));
-//        PostModel post = postRepository.findById(postId)
-//                .orElseThrow(() -> new RuntimeException("Post not found"));
-//        postLikeRepository.delete(like);
-//        post.setLikeCount(post.getLikeCount() - 1);
-//        postRepository.save(post);
-//    }
-//
-//    // Add a comment
-//    @Transactional
-//    public Comment addComment(Integer postId, Integer userProfileId, String content) {
-//        PostModel post = postRepository.findById(postId)
-//                .orElseThrow(() -> new RuntimeException("Post not found"));
-//        UserprofileResponse user = postServiceClient.validateProfile(userProfileId);
-//        if (user == null) {
-//            throw new IllegalArgumentException("Invalid user profile");
-//        }
-//        Comment comment = new Comment();
-//        comment.setPostId(postId);
-//        comment.setUserProfileId(userProfileId);
-//        comment.setContent(content);
-//        post.setCommentCount(post.getCommentCount() + 1);
-//        postRepository.save(post);
-//        return commentRepository.save(comment);
-//    }
-//
-//    // Add a reply to a comment
-//    @Transactional
-//    public CommentReply addReply(Long commentId, Integer userProfileId, String content) {
-//        Comment comment = commentRepository.findById(commentId)
-//                .orElseThrow(() -> new RuntimeException("Comment not found"));
-//        UserprofileResponse user = postServiceClient.validateProfile(userProfileId);
-//        if (user == null) {
-//            throw new IllegalArgumentException("Invalid user profile");
-//        }
-//        CommentReply reply = new CommentReply();
-//        reply.setCommentId(commentId);
-//        reply.setUserProfileId(userProfileId);
-//        reply.setContent(content);
-//        return commentReplyRepository.save(reply);
-//    }
-//
-//    // Get comments for a post
-//    public List<Comment> getCommentsByPostId(Integer postId) {
-//        return commentRepository.findByPostId(postId);
-//    }
-//
-//    // Get replies for a comment
-//    public List<CommentReply> getRepliesByCommentId(Long commentId) {
-//        return commentReplyRepository.findByCommentId(commentId);
-//    }
-//}
 
 package com.InstaSpehere.Post_Add_Service.service;
 
@@ -1099,6 +969,38 @@ public List<PostModel> getPostsByUserProfileId(Integer userProfileId, Integer re
                 .collect(Collectors.toList());
     }
 
+//    @Transactional
+//    public void reportPost(Integer postId, Integer userProfileId) {
+//        // Check if post exists
+//        PostModel post = postRepository.findById(postId)
+//                .orElseThrow(() -> new RuntimeException("Post not found"));
+//
+//        // Check if user has already reported this post
+//        if (postReportRepository.existsByPostIdAndUserProfileId(postId, userProfileId)) {
+//            throw new IllegalArgumentException("You have already reported this post");
+//        }
+//
+//        // Create a new report
+//        PostReport report = new PostReport();
+//        report.setPostId(postId);
+//        report.setUserProfileId(userProfileId);
+//        postReportRepository.save(report);
+//
+//        // Check report count and create alert if threshold met
+//        long reportCount = postReportRepository.countByPostId(postId);
+//        if (reportCount >= 1) { // Lowered threshold to 1 for testing
+//            // Check if an alert already exists for this post
+//            if (!adminAlertRepository.existsByPostId(postId)) {
+//                AdminAlert alert = new AdminAlert();
+//                alert.setPostId(postId);
+//                alert.setMessage("Post with ID " + postId + " has been reported by " + reportCount + " users.");
+//                alert.setCreatedAt(LocalDateTime.now()); // Explicitly set created_at
+//                alert.setIsResolved(false); // Explicitly set is_resolved
+//                adminAlertRepository.save(alert);
+//            }
+//        }
+//    }
+
     @Transactional
     public void reportPost(Integer postId, Integer userProfileId) {
         // Check if post exists
@@ -1116,17 +1018,20 @@ public List<PostModel> getPostsByUserProfileId(Integer userProfileId, Integer re
         report.setUserProfileId(userProfileId);
         postReportRepository.save(report);
 
-        // Check report count and create alert if threshold met
-        long reportCount = postReportRepository.countByPostId(postId);
-        if (reportCount >= 1) { // Lowered threshold to 1 for testing
-            // Check if an alert already exists for this post
-            if (!adminAlertRepository.existsByPostId(postId)) {
-                AdminAlert alert = new AdminAlert();
-                alert.setPostId(postId);
-                alert.setMessage("Post with ID " + postId + " has been reported by " + reportCount + " users.");
-                alert.setCreatedAt(LocalDateTime.now()); // Explicitly set created_at
-                alert.setIsResolved(false); // Explicitly set is_resolved
-                adminAlertRepository.save(alert);
+        // Synchronize on postId to avoid race conditions
+        synchronized (postId.toString().intern()) {
+            // Check report count and create alert if threshold met
+            long reportCount = postReportRepository.countByPostId(postId);
+            if (reportCount >= 1) { // Threshold set to 1 for testing
+                // Check if an alert already exists for this post
+                if (!adminAlertRepository.existsByPostId(postId)) {
+                    AdminAlert alert = new AdminAlert();
+                    alert.setPostId(postId);
+                    alert.setMessage("Post with ID " + postId + " has been reported by " + reportCount + " users.");
+                    alert.setCreatedAt(LocalDateTime.now());
+                    alert.setIsResolved(false);
+                    adminAlertRepository.save(alert);
+                }
             }
         }
     }
@@ -1209,6 +1114,59 @@ public List<PostModel> getPostsByUserProfileId(Integer userProfileId, Integer re
                     );
                 })
                 .collect(Collectors.toList());
+    }
+
+
+    // Get total comments count
+    public long getTotalCommentsCount() {
+        return commentRepository.count();
+    }
+
+    // Get total followers count for a user
+
+    // Get total likes count across all posts
+    public long getTotalLikesCount() {
+        return postLikeRepository.count();
+    }
+
+    // Get pending reports count
+    public long getPendingReportsCount() {
+        return adminAlertRepository.countByIsResolvedFalse();
+    }
+
+//    @Transactional
+//    public void resolveAlert(Long alertId) {
+//        // Check if alert exists
+//        AdminAlert alert = adminAlertRepository.findById(alertId)
+//                .orElseThrow(() -> new RuntimeException("Alert not found"));
+//
+//        // Check if alert is already resolved
+//        if (alert.getIsResolved()) {
+//            throw new IllegalArgumentException("Alert is already resolved");
+//        }
+//
+//        // Mark alert as resolved
+//        alert.setIsResolved(true);
+//        adminAlertRepository.save(alert);
+//    }
+
+    @Transactional
+    public void resolveAlert(Long alertId) {
+        // Check if alert exists
+        AdminAlert alert = adminAlertRepository.findById(alertId)
+                .orElseThrow(() -> new RuntimeException("Alert not found"));
+
+        // Check if alert is already resolved
+        if (alert.getIsResolved()) {
+            throw new IllegalArgumentException("Alert is already resolved");
+        }
+
+        // Mark alert as resolved
+        alert.setIsResolved(true);
+        adminAlertRepository.save(alert);
+
+        // 🆕 Delete all reports for this post
+        postReportRepository.deleteByPostId(alert.getPostId());
     }
 
 }

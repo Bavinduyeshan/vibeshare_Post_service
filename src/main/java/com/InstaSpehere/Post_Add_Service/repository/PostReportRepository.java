@@ -13,4 +13,6 @@ public interface PostReportRepository extends JpaRepository<PostReport, Long> {
     List<PostReport> findByPostId(Integer postId);
     long countByPostId(Integer postId);
     boolean existsByPostIdAndUserProfileId(Integer postId, Integer userProfileId);
+
+    void deleteByPostId(Integer postId);
 }
