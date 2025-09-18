@@ -1055,16 +1055,34 @@ public List<PostModel> getPostsByUserProfileId(Integer userProfileId, Integer re
         }
     }
 
-    @Transactional
-    public void unbanPost(Integer postId, Integer adminUserProfileId) {
-        // Verify admin (assumed validated elsewhere)
-        PostModel post = postRepository.findById(postId)
-                .orElseThrow(() -> new RuntimeException("Post not found"));
+//    @Transactional
+//    public void unbanPost(Integer postId, Integer adminUserProfileId) {
+//        // Verify admin (assumed validated elsewhere)
+//        PostModel post = postRepository.findById(postId)
+//                .orElseThrow(() -> new RuntimeException("Post not found"));
+//
+//        // Unban the post
+//        post.setIsBanned(false);
+//        postRepository.save(post);
+//    }
+@Transactional
+public void unbanPost(Integer postId, Integer adminUserProfileId) {
+    // Verify admin (assumed validated elsewhere)
+    PostModel post = postRepository.findById(postId)
+            .orElseThrow(() -> new RuntimeException("Post not found"));
 
-        // Unban the post
-        post.setIsBanned(false);
-        postRepository.save(post);
-    }
+    // Unban the post
+    post.setIsBanned(false);
+    postRepository.save(post);
+
+    // Delete all reports for this post
+    postReportRepository.deleteByPostId(postId);
+
+    // 🆕 Delete all alerts for this post
+    adminAlertRepository.deleteByPostId(postId);
+}
+
+
 
     public List<AdminAlert> getPendingAlerts() {
         return adminAlertRepository.findByIsResolvedFalse();
@@ -1167,6 +1185,8 @@ public List<PostModel> getPostsByUserProfileId(Integer userProfileId, Integer re
 
         // 🆕 Delete all reports for this post
         postReportRepository.deleteByPostId(alert.getPostId());
+
+        adminAlertRepository.deleteByPostId(alert.getPostId());
     }
 
 }

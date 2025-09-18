@@ -17,4 +17,6 @@ public interface AdminAlertRepository extends JpaRepository<AdminAlert, Long> {
 
 
     long countByIsResolvedFalse();
+
+    void deleteByPostId(Integer postId);
 }
